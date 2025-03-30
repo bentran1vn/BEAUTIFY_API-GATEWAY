@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: BEAUTIFY_API-GATEWAY.APP/Dockerfile
-    container_name: beautify_api-gateway
+    container_name: BEAUTIFY_API-GATEWAY_CONTAINER
     restart: unless-stopped
     ports:
       - "8080:8080"

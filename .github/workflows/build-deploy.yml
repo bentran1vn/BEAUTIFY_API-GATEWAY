@@ -1,0 +1,54 @@
+name: Deploy Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: [self-hosted]
+    env:
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
+      JWT_AUDIENCE: ${{ secrets.JWT_AUDIENCE }}
+      ADDRESS_AUTH: ${{ secrets.ADDRESS_AUTH }}
+      ADDRESS_COMMAND: ${{ secrets.ADDRESS_COMMAND }}
+      ADDRESS_QUERY: ${{ secrets.ADDRESS_QUERY }}
+      ADDRESS_SIGNALING: ${{ secrets.ADDRESS_SIGNALING }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Build Docker Images
+        run: |
+          docker compose build
+
+  deploy:
+    needs: build
+    runs-on: [self-hosted]
+    env:
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
+      JWT_AUDIENCE: ${{ secrets.JWT_AUDIENCE }}
+      ADDRESS_AUTH: ${{ secrets.ADDRESS_AUTH }}
+      ADDRESS_COMMAND: ${{ secrets.ADDRESS_COMMAND }}
+      ADDRESS_QUERY: ${{ secrets.ADDRESS_QUERY }}
+      ADDRESS_SIGNALING: ${{ secrets.ADDRESS_SIGNALING }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Stop Gateway
+        run: |
+          docker compose -f docker-compose.yml -p beautify_api-gateway-project stop beautify_api-gateway
+          docker compose -f docker-compose.yml -p beautify_api-gateway-project rm -f beautify_api-gateway
+
+      - name: Prune Unused Docker Images
+        run: docker image prune -f
+
+      - name: Deploy API
+        run: docker compose -f docker-compose.yml -p beautify_api-gateway-project up -d beautify_api-gateway --build
+
+      - name: Notify Deployment Success
+        run: echo "Deployment completed successfully!"

@@ -1,0 +1,49 @@
+services:
+  beautify_api-gateway:
+    build:
+      context: .
+      dockerfile: BEAUTIFY_API-GATEWAY.APP/Dockerfile
+    container_name: beautify_api-gateway
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      Logging__LogLevel__Default: Information
+      Logging__LogLevel__Microsoft_AspNetCore: Warning
+
+      JwtOption__Issuer: ${JWT_ISSUER}
+      JwtOption__Audience: ${JWT_AUDIENCE}
+      JwtOption__SecretKey: ${JWT_SECRET}
+      JwtOption__ExpireMin: 5
+
+      ReverseProxy__Routes__authApiRoute__ClusterId: "authApiCluster"
+      ReverseProxy__Routes__authApiRoute__Match__Path: "auth-api/{**catch-all}"
+      ReverseProxy__Routes__authApiRoute__Transforms__0__PathPattern: "api/{**catch-all}"
+
+      ReverseProxy__Routes__commandApiRoute__ClusterId: "commandApiCluster"
+      ReverseProxy__Routes__commandApiRoute__Match__Path: "command-api/{**catch-all}"
+      ReverseProxy__Routes__commandApiRoute__Transforms__0__PathPattern: "api/{**catch-all}"
+
+      ReverseProxy__Routes__queryApiRoute__ClusterId: "queryApiCluster"
+      ReverseProxy__Routes__queryApiRoute__Match__Path: "query-api/{**catch-all}"
+      ReverseProxy__Routes__queryApiRoute__Transforms__0__PathPattern: "api/{**catch-all}"
+      
+      ReverseProxy__Routes__signalingApiRoute__ClusterId: "signalingApiCluster"
+      ReverseProxy__Routes__signalingApiRoute__Match__Path: "signaling-api/{**catch-all}"
+      ReverseProxy__Routes__signalingApiRoute__Transforms__0__PathPattern: "api/{**catch-all}"
+
+      ReverseProxy__Clusters__authApiCluster__Destinations__Destination1__Address: ${ADDRESS_AUTH}
+      ReverseProxy__Clusters__commandApiCluster__Destinations__Destination1__Address: ${ADDRESS_COMMAND}
+      ReverseProxy__Clusters__queryApiCluster__Destinations__Destination1__Address: ${ADDRESS_QUERY}
+      ReverseProxy__Clusters__signalingApiCluster__Destinations__Destination1__Address: ${ADDRESS_SIGNALING}
+      AllowedHosts: "*"
+    networks:
+      - beautify-network
+
+networks:
+  beautify-network:
+    name: beautify-network
+    driver: bridge
+    ipam:
+      driver: default
+    external: true

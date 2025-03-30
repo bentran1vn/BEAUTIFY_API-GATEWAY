@@ -2,6 +2,9 @@ using BEAUTIFY_API_GATEWAY.APP.DependencyInjection.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration
+    .AddEnvironmentVariables();
+
 // Add services to the container.
 builder.Services.AddJwtAuthenticationApiGateway(builder.Configuration);
 builder.Services.AddReverseProxyApiGateway(builder.Configuration);
